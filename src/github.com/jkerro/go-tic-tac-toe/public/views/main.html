@@ -15,12 +15,14 @@
             crossorigin="anonymous"></script>
     </head>
     <body>
-        <h1>List of games</h1>
-        {{template "games" .}}
-        <form hx-post="/games" hx-target="#games" hx-swap="outerHTML">
-            <input name="name" type="text">
-            <button class="btn">Add game</button>
-        </form>
+        <main class="container">
+            <h1>List of games</h1>
+            {{template "games" .}}
+            <form hx-post="/games" hx-target="#games" hx-swap="outerHTML">
+                <input name="name" type="text">
+                <button class="btn">Add game</button>
+            </form>
+        </main>
     </body>
 </html>
 {{end}}
