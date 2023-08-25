@@ -9,12 +9,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RenderList(db *sqlx.DB, c echo.Context) error {
+func Games(db *sqlx.DB, template string, c echo.Context) error {
 	games, err := repository.GetGames(db)
 	if err != nil {
 		panic(err)
 	}
-	return c.Render(http.StatusOK, "main", games)
+	return c.Render(http.StatusOK, template, games)
 }
 
 func CreateGame(db *sqlx.DB, c echo.Context) error {

@@ -34,7 +34,11 @@ func main() {
 	}
 	e.Renderer = renderer
 	e.GET("/", func(c echo.Context) error {
-		return handlers.RenderList(db, c)
+		return handlers.Games(db, "main", c)
+	})
+
+	e.GET("/games", func(c echo.Context) error {
+		return handlers.Games(db, "games", c)
 	})
 
 	e.POST("/games", func(c echo.Context) error {

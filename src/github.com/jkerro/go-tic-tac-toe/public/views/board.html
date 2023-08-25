@@ -1,4 +1,5 @@
 {{define "board"}}
+    <button class="btn" hx-get="/games" hx-target="main">Back</button>
     <div class="container text-center">
         {{range $row := .}}
         <div class="row">
