@@ -18,3 +18,9 @@ func InsertGame(db *sqlx.DB, name string) error {
 	tx.MustExec("INSERT INTO game(name) VALUES (?)", name)
 	return tx.Commit()
 }
+
+func DeleteGame(db *sqlx.DB, id int) error {
+	tx := db.MustBegin()
+	tx.MustExec("DELETE FROM game WHERE id=?", id)
+	return tx.Commit()
+}

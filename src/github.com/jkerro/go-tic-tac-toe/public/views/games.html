@@ -1,7 +1,13 @@
 {{define "games"}}
 <ul id="games">
     {{range $game := .}}
-    <li data-id="{{$game.Id}}">{{$game.Name}}</li>
+    <li id="game-{{$game.Id}}">
+        <button hx-delete="/games/{{$game.Id}}" hx-target="#game-{{$game.Id}}" hx-swap="outerHTML" class="btn">
+            <i class="bi bi-trash-fill"></i>
+            Delete
+        </button>
+        {{$game.Name}}
+    </li>
     {{end}}
 </ul>
 {{end}}

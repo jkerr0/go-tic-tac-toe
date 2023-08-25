@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/jkerro/go-tic-tac-toe/repository"
 	"github.com/jmoiron/sqlx"
@@ -48,6 +49,14 @@ func main() {
 			panic(err)
 		}
 		return c.Render(http.StatusOK, "games", games)
+	})
+
+	e.DELETE("/games/:id", func(c echo.Context) error {
+		id, atoiErr := strconv.Atoi(c.Param("id"))
+		if (atoiErr != nil) {
+			return c.String(http.StatusBadRequest, "Bad request id is not a number")
+		}
+		return repository.DeleteGame(db, id)
 	})
 
 
