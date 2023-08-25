@@ -1,0 +1,13 @@
+{{define "main"}}
+<html>
+    <head></head>
+    <body>
+        <h1>List of games</h1>
+        <ul>
+            {{range $game := .}}
+                <li>{{$game.Name}}</li>
+            {{end}}
+        </ul>
+    </body>
+</html>
+{{end}}
