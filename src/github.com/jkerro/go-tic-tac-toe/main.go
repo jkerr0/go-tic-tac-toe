@@ -26,11 +26,6 @@ func main() {
 		panic(err)
 	}
 	log.Println("Database connected")
-	repository.InsertGame(db, "newgame")
-	games, err := repository.GetGames(db)
-	for _, game := range games {
-		log.Println(game.Name)
-	}
 
 	e := echo.New()
 	renderer := &Template{
@@ -38,7 +33,21 @@ func main() {
 	}
 	e.Renderer = renderer
 	e.GET("/", func(c echo.Context) error {
+		games, err := repository.GetGames(db)
+		if (err != nil) {
+			panic(err)
+		}
 		return c.Render(http.StatusOK, "main", games)
+	})
+
+	e.POST("/games", func(c echo.Context) error {
+		name := c.FormValue("name")
+		repository.InsertGame(db, name)
+		games, err := repository.GetGames(db)
+		if (err != nil) {
+			panic(err)
+		}
+		return c.Render(http.StatusOK, "games", games)
 	})
 
 

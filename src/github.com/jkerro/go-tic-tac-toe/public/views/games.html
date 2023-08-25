@@ -1,0 +1,7 @@
+{{define "games"}}
+<ul id="games">
+    {{range $game := .}}
+    <li data-id="{{$game.Id}}">{{$game.Name}}</li>
+    {{end}}
+</ul>
+{{end}}
