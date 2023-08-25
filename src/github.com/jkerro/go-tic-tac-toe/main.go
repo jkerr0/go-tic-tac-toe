@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jkerro/go-tic-tac-toe/logic"
 	"github.com/jkerro/go-tic-tac-toe/repository"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -35,7 +36,7 @@ func main() {
 	e.Renderer = renderer
 	e.GET("/", func(c echo.Context) error {
 		games, err := repository.GetGames(db)
-		if (err != nil) {
+		if err != nil {
 			panic(err)
 		}
 		return c.Render(http.StatusOK, "main", games)
@@ -45,7 +46,7 @@ func main() {
 		name := c.FormValue("name")
 		repository.InsertGame(db, name)
 		games, err := repository.GetGames(db)
-		if (err != nil) {
+		if err != nil {
 			panic(err)
 		}
 		return c.Render(http.StatusOK, "games", games)
@@ -53,12 +54,15 @@ func main() {
 
 	e.DELETE("/games/:id", func(c echo.Context) error {
 		id, atoiErr := strconv.Atoi(c.Param("id"))
-		if (atoiErr != nil) {
+		if atoiErr != nil {
 			return c.String(http.StatusBadRequest, "Bad request id is not a number")
 		}
 		return repository.DeleteGame(db, id)
 	})
-
+	e.GET("/board", func(c echo.Context) error {
+		b := logic.NewBoard()
+		return c.Render(http.StatusOK, "board", b.Matrix())
+	})
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

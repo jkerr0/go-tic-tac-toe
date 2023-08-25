@@ -1,0 +1,13 @@
+{{define "board"}}
+    <div class="container text-center">
+        {{range $row := .}}
+        <div class="row">
+            {{range $col := $row }}
+            <div class="col">
+                {{$col}}
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+{{end}}
