@@ -1,14 +1,21 @@
 {{define "board"}}
-    <button class="btn" hx-get="/games" hx-target="main">Back</button>
-    <div class="container text-center">
-        {{range $row := .}}
-        <div class="row">
-            {{range $col := $row }}
-            <div class="col">
-                {{$col}}
-            </div>
-            {{end}}
+<button class="btn" hx-get="/games" hx-target="main">Back</button>
+<div class="container text-center" hx-ext="ws" ws-connect="/ws">
+    {{range $row := .}}
+    <div class="row">
+        {{range $col := $row }}
+        <div class="col">
+            <form ws-send>
+                <input type="hidden" name="col" value="{{$col}}">
+                <input type="hidden" name="row" value="{{$row}}">
+                <button>
+                    {{$col}}
+                </button>
+            </form>
         </div>
         {{end}}
     </div>
+    {{end}}
+    <div id="receive"></div>
+</div>
 {{end}}
