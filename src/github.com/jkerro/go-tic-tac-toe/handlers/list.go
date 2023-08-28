@@ -12,7 +12,9 @@ import (
 func Games(db *sqlx.DB, template string, c echo.Context) error {
 	games, err := repository.GetGames(db)
 	if err != nil {
-		panic(err)
+		msg := "Could not retrieve games from database"
+		c.Logger().Error(msg)
+		return c.String(http.StatusInternalServerError, msg)
 	}
 	return c.Render(http.StatusOK, template, games)
 }
@@ -22,7 +24,9 @@ func CreateGame(db *sqlx.DB, c echo.Context) error {
 	repository.InsertGame(db, name)
 	games, err := repository.GetGames(db)
 	if err != nil {
-		panic(err)
+		msg :="Could not retrieve games from database" 
+		c.Logger().Error()
+		return c.String(http.StatusInternalServerError, msg)
 	}
 	return c.Render(http.StatusOK, "games", games)
 }
@@ -30,7 +34,9 @@ func CreateGame(db *sqlx.DB, c echo.Context) error {
 func DeleteGame(db *sqlx.DB, c echo.Context) error {
 	id, atoiErr := strconv.Atoi(c.Param("id"))
 	if atoiErr != nil {
-		return c.String(http.StatusBadRequest, "Bad request id is not a number")
+		msg := "Bad request id is not a number"
+		c.Logger().Error(msg)
+		return c.String(http.StatusBadRequest, msg)
 	}
 	return repository.DeleteGame(db, id)
 }

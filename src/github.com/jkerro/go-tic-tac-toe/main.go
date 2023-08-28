@@ -3,7 +3,6 @@ package main
 import (
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/jkerro/go-tic-tac-toe/handlers"
@@ -22,13 +21,12 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 }
 
 func main() {
+	e := echo.New()
 	db, err := sqlx.Connect("sqlite", "test.db")
 	if err != nil {
-		panic(err)
+		e.Logger.Info("Could not connect to the database", err)
 	}
-	log.Println("Database connected")
 
-	e := echo.New()
 	renderer := &Template{
 		templates: template.Must(template.ParseGlob("public/views/*.html")),
 	}
