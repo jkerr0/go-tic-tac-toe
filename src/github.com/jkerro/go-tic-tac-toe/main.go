@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/jkerro/go-tic-tac-toe/handlers"
@@ -31,7 +33,7 @@ func main() {
 	e := echo.New()
 	db, err := sqlx.Connect("sqlite", "test.db")
 	if err != nil {
-		e.Logger.Info("Could not connect to the database", err)
+		log.Println("Could not connect to the database")
 	}
 
 	renderer := &Template{
@@ -59,30 +61,51 @@ func main() {
 		return c.Render(http.StatusOK, "board", b.Matrix())
 	})
 
-	counter := 0
+	connections := []*websocket.Conn{}
+	messageQueue := [10]string{}
+	queueEnd := 0
+
+	addMessage := func(message string) {
+		messageQueue[queueEnd] = message
+		queueEnd = (queueEnd + 1) % 10
+	}
+	// Write
+	mutex := sync.Mutex{}
+
+	writer := func() {
+		for {
+			mutex.Lock()
+			for i, ws := range connections {
+				if ws == nil {
+					continue
+				}
+				err := ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("<div id=\"receive\">%s</div>", messageQueue)))
+				if err != nil {
+					connections = append(connections[:i], connections[i+1:]...)
+					log.Println(err)
+				}
+			}
+		}
+	}
+	go writer()
 
 	e.GET("/ws", func(c echo.Context) error {
 		ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
 			return err
 		}
+		connections = append(connections, ws)
 
 		defer ws.Close()
-
 		for {
-			// Write
-			err := ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("<div id=\"receive\">Hello, Client! %d</div>", counter)))
-			if err != nil {
-				c.Logger().Error(err)
-			}
-
-			// Read
 			_, msg, err := ws.ReadMessage()
 			if err != nil {
 				c.Logger().Error(err)
+			} else {
+				addMessage(string(msg))
+				fmt.Println(string(msg))
+				mutex.Unlock()
 			}
-			counter++
-			c.Logger().Info(msg)
 		}
 	})
 

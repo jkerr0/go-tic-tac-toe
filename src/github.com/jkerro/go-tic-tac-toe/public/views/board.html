@@ -1,13 +1,13 @@
 {{define "board"}}
 <button class="btn" hx-get="/games" hx-target="main">Back</button>
 <div class="container text-center" hx-ext="ws" ws-connect="/ws">
-    {{range $row := .}}
+    {{range $rowInx, $row := .}}
     <div class="row">
-        {{range $col := $row }}
+        {{range $colInx, $col := $row }}
         <div class="col">
             <form ws-send>
-                <input type="hidden" name="col" value="{{$col}}">
-                <input type="hidden" name="row" value="{{$row}}">
+                <input type="hidden" name="col" value="{{$colInx}}">
+                <input type="hidden" name="row" value="{{$rowInx}}">
                 <button>
                     {{$col}}
                 </button>
