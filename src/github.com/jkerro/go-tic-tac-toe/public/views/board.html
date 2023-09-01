@@ -8,7 +8,7 @@
             <form ws-send>
                 <input type="hidden" name="col" value="{{$colInx}}">
                 <input type="hidden" name="row" value="{{$rowInx}}">
-                <button>
+                <button id="row-{{$rowInx}}-col-{{$colInx}}">
                     {{$col}}
                 </button>
             </form>
@@ -16,6 +16,5 @@
         {{end}}
     </div>
     {{end}}
-    <div id="receive"></div>
 </div>
 {{end}}

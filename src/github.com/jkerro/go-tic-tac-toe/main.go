@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -69,13 +70,22 @@ func main() {
 		}
 		channel.Join(ws)
 
-		defer ws.Close()
+		defer func() {
+			channel.Leave(ws)
+			ws.Close()
+		}()
+
 		for {
 			_, msg, err := ws.ReadMessage()
+			var data map[string]interface{}
 			if err != nil {
 				c.Logger().Error(err)
 			} else {
-				channel.Broadcast(fmt.Sprintf("<div id=\"receive\">%s</div>", string(msg)))
+				err := json.Unmarshal(msg, &data)
+				if err != nil {
+					c.Logger().Error("could not unmarshal json: %s\n", err)
+				}
+				channel.Broadcast(fmt.Sprintf("<button id=\"row-%s-col-%s\">clicked</button>", data["row"], data["col"]))
 			}
 		}
 	})
