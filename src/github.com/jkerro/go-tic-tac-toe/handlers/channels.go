@@ -2,14 +2,13 @@ package handlers
 
 import (
 	"errors"
-	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
 type Channel struct {
 	connections []*websocket.Conn
-	writerMutex sync.Mutex
+	notify      chan bool
 	messages    []string
 }
 
@@ -34,18 +33,31 @@ func (c *Channel) Leave(connection *websocket.Conn) error {
 
 func (c *Channel) Broadcast(message string) {
 	c.messages = append(c.messages, message)
-	c.writerMutex.Unlock()
+	c.notify <- true
 }
 
 func OpenChannel() *Channel {
-	c := &Channel{}
+	c := &Channel{
+		notify: make(chan bool)}
 	go c.writer()
 	return c
 }
 
+func (c *Channel) Close() {
+	c.notify <- false
+	close(c.notify)
+}
+
+func (c *Channel) IsEmpty() bool {
+	return len(c.connections) == 0
+}
+
 func (c *Channel) writer() {
 	for {
-		c.writerMutex.Lock()
+		shouldRun := <-c.notify
+		if !shouldRun {
+			break
+		}
 		for _, message := range c.messages {
 			for _, ws := range c.connections {
 				if ws == nil {

@@ -1,5 +1,7 @@
 package logic
 
+import "github.com/jkerro/go-tic-tac-toe/repository"
+
 type BoardElement string
 
 const (
@@ -13,7 +15,7 @@ type Board struct {
 }
 
 func (b *Board) Row(index int) []BoardElement {
-	return b.Elements[index : index+3]
+	return b.Elements[index*3 : index*3+3]
 }
 
 func (b *Board) Matrix() [][]BoardElement {
@@ -22,6 +24,21 @@ func (b *Board) Matrix() [][]BoardElement {
 		b.Row(1),
 		b.Row(2),
 	}
+}
+
+func GetBoard(moves []repository.Move) *Board {
+	b := NewBoard()
+	for _, move := range moves {
+		x := move.Col
+		y := move.Row
+		boardIndex := y*3 + x
+		if move.Inx%2 == 0 {
+			b.Elements[boardIndex] = X
+		} else {
+			b.Elements[boardIndex] = O
+		}
+	}
+	return b
 }
 
 func NewBoard() *Board {

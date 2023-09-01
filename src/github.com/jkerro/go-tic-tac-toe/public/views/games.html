@@ -3,7 +3,7 @@
     {{range $game := .}}
     <div id="game-{{$game.Id}}" class="row">
         <div class="col-6">
-            <li hx-get="/board" hx-target="main" class="list-group-item list-group-item-action">
+            <li hx-get="/board/{{$game.Id}}" hx-target="main" class="list-group-item list-group-item-action">
                 {{$game.Name}}
             </li>
         </div>
@@ -22,7 +22,7 @@
 {{define "games"}}
 <h1>List of games</h1>
 {{template "games-list" .}}
-<form hx-post="/games" hx-target="#games" hx-swap="outerHTML">
+<form hx-post="/games" hx-target="main">
     <input name="name" type="text">
     <button class="btn btn-primary">
         {{template "icon-plus"}}
