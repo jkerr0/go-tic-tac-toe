@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/jkerro/go-tic-tac-toe/handlers"
@@ -61,40 +60,14 @@ func main() {
 		return c.Render(http.StatusOK, "board", b.Matrix())
 	})
 
-	connections := []*websocket.Conn{}
-	messageQueue := [10]string{}
-	queueEnd := 0
-
-	addMessage := func(message string) {
-		messageQueue[queueEnd] = message
-		queueEnd = (queueEnd + 1) % 10
-	}
-	// Write
-	mutex := sync.Mutex{}
-
-	writer := func() {
-		for {
-			mutex.Lock()
-			for i, ws := range connections {
-				if ws == nil {
-					continue
-				}
-				err := ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("<div id=\"receive\">%s</div>", messageQueue)))
-				if err != nil {
-					connections = append(connections[:i], connections[i+1:]...)
-					log.Println(err)
-				}
-			}
-		}
-	}
-	go writer()
+	channel := handlers.OpenChannel()
 
 	e.GET("/ws", func(c echo.Context) error {
 		ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
 			return err
 		}
-		connections = append(connections, ws)
+		channel.Join(ws)
 
 		defer ws.Close()
 		for {
@@ -102,9 +75,7 @@ func main() {
 			if err != nil {
 				c.Logger().Error(err)
 			} else {
-				addMessage(string(msg))
-				fmt.Println(string(msg))
-				mutex.Unlock()
+				channel.Broadcast(fmt.Sprintf("<div id=\"receive\">%s</div>", string(msg)))
 			}
 		}
 	})
