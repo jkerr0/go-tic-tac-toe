@@ -15,7 +15,7 @@ type Move struct {
 
 func (m *Move) Insert(db *sqlx.DB) error {
 	tx := db.MustBegin()
-	maxInx, err := getMaxIndex(db, m.GameId)
+	maxInx, err := GetMaxMoveIndex(db, m.GameId)
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func (m *Move) Insert(db *sqlx.DB) error {
 	return tx.Commit()
 }
 
-func getMaxIndex(db *sqlx.DB, gameId int) (int, error) {
+func GetMaxMoveIndex(db *sqlx.DB, gameId int) (int, error) {
 	index := make([]sql.NullInt32, 1)
 	err := db.Select(&index, "SELECT max(inx) FROM move WHERE game_id=?", gameId)
 	if len(index) == 0 || !index[0].Valid {

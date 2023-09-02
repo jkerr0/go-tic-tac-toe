@@ -32,13 +32,17 @@ func GetBoard(moves []repository.Move) *Board {
 		x := move.Col
 		y := move.Row
 		boardIndex := y*3 + x
-		if move.Inx%2 == 0 {
-			b.Elements[boardIndex] = X
-		} else {
-			b.Elements[boardIndex] = O
-		}
+		b.Elements[boardIndex] = GetTurnElement(move.Inx)
 	}
 	return b
+}
+
+func GetTurnElement(moveIndex int) BoardElement {
+	if moveIndex%2 == 0 {
+		return X
+	} else {
+		return O
+	}
 }
 
 func NewBoard() *Board {

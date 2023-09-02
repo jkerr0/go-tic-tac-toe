@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -43,20 +41,24 @@ func main() {
 		templates: template.Must(template.ParseGlob("public/views/*.html")),
 	}
 	e.Renderer = renderer
+	context := func(c echo.Context) handlers.Context {
+		return handlers.Context{EchoCtx: c, Db: db}
+	}
+
 	e.GET("/", func(c echo.Context) error {
-		return handlers.Games(db, "main", c)
+		return handlers.Games(context(c), "main")
 	})
 
 	e.GET("/games", func(c echo.Context) error {
-		return handlers.Games(db, "games", c)
+		return handlers.Games(context(c), "games")
 	})
 
 	e.POST("/games", func(c echo.Context) error {
-		return handlers.CreateGame(db, c)
+		return handlers.CreateGame(context(c))
 	})
 
 	e.DELETE("/games/:id", func(c echo.Context) error {
-		return handlers.DeleteGame(db, c)
+		return handlers.DeleteGame(context(c))
 	})
 
 	e.GET("/board/:gameId", func(c echo.Context) error {
@@ -76,7 +78,7 @@ func main() {
 		return c.Render(http.StatusOK, "board", BoardData{b.Matrix(), gameId})
 	})
 
-	channels := map[int]*handlers.Channel{}
+	channels := handlers.NewChannelPool()
 
 	e.GET("/ws/:gameId", func(c echo.Context) error {
 		ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -88,17 +90,10 @@ func main() {
 			c.String(http.StatusBadRequest, "Game id is required to be an integer")
 		}
 
-		if channels[gameId] == nil {
-			channels[gameId] = handlers.OpenChannel()
-		}
-		channels[gameId].Join(ws)
+		channel := channels.Join(ws, gameId)
 
 		defer func() {
-			channels[gameId].Leave(ws)
-			if channels[gameId].IsEmpty() {
-				channels[gameId].Close()
-				channels[gameId] = nil
-			}
+			channels.Leave(ws, gameId)
 			ws.Close()
 		}()
 
@@ -107,33 +102,7 @@ func main() {
 			if err != nil {
 				c.Logger().Error(err)
 			} else {
-				var data map[string]interface{}
-
-				err := json.Unmarshal(msg, &data)
-
-				if err != nil {
-					c.Logger().Error("could not unmarshal json: %s\n", err)
-				} else {
-					col, err := strconv.Atoi(data["col"].(string))
-					if err != nil {
-						c.Logger().Error("could not parse column index")
-					}
-					row, err := strconv.Atoi(data["row"].(string))
-					if err != nil {
-						c.Logger().Error("could not parse row index")
-					} else {
-						move := &repository.Move{
-							Col:    col,
-							Row:    row,
-							GameId: gameId}
-						err := move.Insert(db)
-						if err != nil {
-							log.Println(err)
-							c.Logger().Error(err)
-						}
-						channels[gameId].Broadcast(fmt.Sprintf("<button id=\"row-%d-col-%d\">clicked</button>", row, col))
-					}
-				}
+				handlers.HandleMoveMessage(context(c), msg, gameId, channel)
 			}
 		}
 	})

@@ -22,5 +22,6 @@ func InsertGame(db *sqlx.DB, name string) error {
 func DeleteGame(db *sqlx.DB, id int) error {
 	tx := db.MustBegin()
 	tx.MustExec("DELETE FROM game WHERE id=?", id)
+	tx.MustExec("DELETE FROM move WHERE game_id=?", id)
 	return tx.Commit()
 }

@@ -6,6 +6,30 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type ChannelPool struct {
+	pool map[int]*Channel
+}
+
+func NewChannelPool() *ChannelPool {
+	return &ChannelPool{pool: map[int]*Channel{}}
+}
+
+func (cp *ChannelPool) Join(connection *websocket.Conn, id int) *Channel {
+	if cp.pool[id] == nil {
+		cp.pool[id] = OpenChannel()
+	}
+	cp.pool[id].Join(connection)
+	return cp.pool[id]
+}
+
+func (cp *ChannelPool) Leave(connection *websocket.Conn, id int) {
+	cp.pool[id].Leave(connection)
+	if cp.pool[id].IsEmpty() {
+		cp.pool[id].Close()
+		cp.pool[id] = nil
+	}
+}
+
 type Channel struct {
 	connections []*websocket.Conn
 	notify      chan bool
