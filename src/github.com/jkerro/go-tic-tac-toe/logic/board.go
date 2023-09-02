@@ -18,6 +18,15 @@ func (b *Board) Row(index int) []BoardElement {
 	return b.Elements[index*3 : index*3+3]
 }
 
+func (b *Board) Column(index int) []BoardElement {
+	return []BoardElement{b.Elements[index], b.Elements[index+3], b.Elements[index+6]}
+}
+
+func (b *Board) Diagonals() ([]BoardElement, []BoardElement) {
+	return []BoardElement{b.Elements[0], b.Elements[4], b.Elements[8]},
+		[]BoardElement{b.Elements[2], b.Elements[4], b.Elements[6]}
+}
+
 func (b *Board) Matrix() [][]BoardElement {
 	return [][]BoardElement{
 		b.Row(0),

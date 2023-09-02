@@ -29,6 +29,7 @@ func HandleMoveMessage(ctx Context, message []byte, gameId int, channel *Channel
 		c.Logger().Error("could not parse row index")
 		return
 	}
+
 	move := &repository.Move{
 		Col:    col,
 		Row:    row,
@@ -38,5 +39,18 @@ func HandleMoveMessage(ctx Context, message []byte, gameId int, channel *Channel
 		c.Logger().Error(err)
 		return
 	}
-	channel.Broadcast(fmt.Sprintf("<button id=\"row-%d-col-%d\">%s</button>", row, col, logic.GetTurnElement(move.Inx)))
+
+	turn := logic.GetTurnElement(move.Inx)
+	var info string
+	moves, err := repository.GetMoves(ctx.Db, gameId)
+	if err != nil {
+		c.Logger().Error(err)
+		return
+	}
+	win := logic.CheckWin(logic.GetBoard(moves))
+	if win {
+		info = fmt.Sprintf("%s wins", turn)
+	}
+
+	channel.Broadcast(fmt.Sprintf("<button id=\"row-%d-col-%d\">%s</button><div id=\"info\">%s</div>", row, col, turn, info))
 }
