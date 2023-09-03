@@ -12,10 +12,7 @@ func GetBoard(ctx Context) error {
 	c := ctx.EchoCtx
 	db := ctx.Db
 	session := GetSession(c)
-	c.Logger().Info("joined with side ", session.Values["side"])
-	session.Values["side"] = string(logic.X)
-	SaveSession(session, c)
-	gameId, err := strconv.Atoi(c.Param("gameId"))
+	gameId, err := strconv.Atoi(session.Values["gameId"].(string))
 	if err != nil {
 		c.String(http.StatusBadRequest, "Game id is required to be an integer")
 	}
@@ -28,5 +25,6 @@ func GetBoard(ctx Context) error {
 		Board  [][]logic.BoardElement
 		GameId int
 	}
+	SaveSession(session, c)
 	return c.Render(http.StatusOK, "board", BoardData{b.Matrix(), gameId})
 }

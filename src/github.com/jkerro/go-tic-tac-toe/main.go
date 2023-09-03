@@ -50,7 +50,6 @@ func main() {
 
 	e.GET("/", func(c echo.Context) error {
 		s := handlers.GetSession(c)
-		s.Values["side"] = "free"
 		handlers.SaveSession(s, c)
 		return handlers.Games(context(c), "main")
 	})
@@ -65,10 +64,19 @@ func main() {
 
 	e.POST("/select-side/:side", func(c echo.Context) error {
 		side := c.Param("side")
+		allowed := []string{"x", "o", "spectator"}
+		sideCorrect := false
+		for _, a := range allowed {
+			if a == side {
+				sideCorrect = true
+			}
+		}
+		if !sideCorrect {
+			return c.String(http.StatusBadRequest, "Invalid side")
+		}
 		sess := handlers.GetSession(c)
 		sess.Values["side"] = side
-		handlers.SaveSession(sess, c)
-		return c.NoContent(http.StatusOK)
+		return handlers.GetBoard(context(c))
 	})
 
 	e.DELETE("/games/:id", func(c echo.Context) error {
@@ -76,7 +84,10 @@ func main() {
 	})
 
 	e.GET("/board/:gameId", func(c echo.Context) error {
-		return handlers.GetBoard(context(c))
+		sess := handlers.GetSession(c)
+		sess.Values["gameId"] = c.Param("gameId")
+		handlers.SaveSession(sess, c)
+		return c.Render(http.StatusOK, "select-side", "")
 	})
 
 	channels := handlers.NewChannelPool()
@@ -91,8 +102,7 @@ func main() {
 			c.String(http.StatusBadRequest, "Game id is required to be an integer")
 		}
 
-		side := handlers.GetSession(c).Values["side"]
-
+		side := handlers.GetSession(c).Values["side"].(string)
 		channel := channels.Join(ws, gameId)
 
 		defer func() {
@@ -106,8 +116,7 @@ func main() {
 				c.Logger().Error(err)
 				return err
 			}
-			c.Logger().Info("reading session from websocket ", side)
-			handlers.HandleMoveMessage(context(c), msg, gameId, channel)
+			handlers.HandleMoveMessage(context(c), msg, gameId, channel, side)
 		}
 
 	})

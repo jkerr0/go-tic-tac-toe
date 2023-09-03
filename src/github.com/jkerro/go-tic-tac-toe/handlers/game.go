@@ -22,8 +22,15 @@ type moveResponse struct {
 	BoardElement logic.BoardElement
 }
 
-func HandleMoveMessage(ctx Context, message []byte, gameId int, channel *Channel) {
+func HandleMoveMessage(ctx Context, message []byte, gameId int, channel *Channel, side string) {
 	c := ctx.EchoCtx
+
+	if ok, err := verifyMove(ctx, gameId, side); !ok {
+		return
+	} else if err != nil {
+		c.Logger().Error("could not verify move", err)
+		return
+	}
 
 	parsedMove, err := parseMessage(message)
 	if err != nil {
@@ -101,4 +108,23 @@ func getResponse(ctx Context, move *repository.Move, gameId int) (string, error)
 	}
 	c.Echo().Renderer.Render(&responseBuf, "move-response", responseData, c)
 	return responseBuf.String(), nil
+}
+
+func verifyMove(ctx Context, gameId int, side string) (bool, error) {
+	c := ctx.EchoCtx
+	currentMoveIndex, err := repository.GetMaxMoveIndex(ctx.Db, gameId)
+	if err != nil {
+		c.Logger().Error("cannot get max index", err)
+		return false, err
+	}
+	if string(logic.GetTurnElement(currentMoveIndex+1)) != side || side == "spectator" {
+		return false, err
+	}
+	if win, err := checkGameWin(ctx.Db, gameId); win {
+		return false, err
+	} else if err != nil {
+		c.Logger().Error("cannot check if game already ended", err)
+		return false, err
+	}
+	return true, nil
 }

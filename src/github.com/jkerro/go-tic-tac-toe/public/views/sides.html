@@ -1,0 +1,8 @@
+{{define "select-side"}}
+    <div>Select side:</div>
+    <form>
+        <button hx-post="/select-side/x" hx-target="main">X</button>
+        <button hx-post="/select-side/o" hx-target="main">O</button>
+        <button hx-post="/select-side/spectator" hx-target="main">spectator</button>
+    </form>
+{{end}}
