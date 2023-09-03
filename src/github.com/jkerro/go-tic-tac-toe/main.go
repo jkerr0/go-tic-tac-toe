@@ -3,13 +3,16 @@ package main
 import (
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/gommon/log"
+
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
+
 	"github.com/gorilla/websocket"
 	"github.com/jkerro/go-tic-tac-toe/handlers"
-	"github.com/jkerro/go-tic-tac-toe/logic"
 	"github.com/jkerro/go-tic-tac-toe/repository"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -33,7 +36,7 @@ func main() {
 	e := echo.New()
 	db, err := sqlx.Connect("sqlite", "test.db")
 	if err != nil {
-		log.Println("Could not connect to the database")
+		e.Logger.Fatal("Could not connect to the database")
 	}
 	repository.CreateDatabase(db)
 
@@ -46,6 +49,9 @@ func main() {
 	}
 
 	e.GET("/", func(c echo.Context) error {
+		s := handlers.GetSession(c)
+		s.Values["side"] = "free"
+		handlers.SaveSession(s, c)
 		return handlers.Games(context(c), "main")
 	})
 
@@ -62,20 +68,7 @@ func main() {
 	})
 
 	e.GET("/board/:gameId", func(c echo.Context) error {
-		gameId, err := strconv.Atoi(c.Param("gameId"))
-		if err != nil {
-			c.String(http.StatusBadRequest, "Game id is required to be an integer")
-		}
-		moves, err := repository.GetMoves(db, gameId)
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Database error")
-		}
-		b := logic.GetBoard(moves)
-		type BoardData struct {
-			Board  [][]logic.BoardElement
-			GameId int
-		}
-		return c.Render(http.StatusOK, "board", BoardData{b.Matrix(), gameId})
+		return handlers.GetBoard(context(c))
 	})
 
 	channels := handlers.NewChannelPool()
@@ -90,6 +83,8 @@ func main() {
 			c.String(http.StatusBadRequest, "Game id is required to be an integer")
 		}
 
+		side := handlers.GetSession(c).Values["side"]
+
 		channel := channels.Join(ws, gameId)
 
 		defer func() {
@@ -101,13 +96,26 @@ func main() {
 			_, msg, err := ws.ReadMessage()
 			if err != nil {
 				c.Logger().Error(err)
-			} else {
-				handlers.HandleMoveMessage(context(c), msg, gameId, channel)
+				return err
 			}
+			c.Logger().Info("reading session from websocket ", side)
+			handlers.HandleMoveMessage(context(c), msg, gameId, channel)
 		}
+
 	})
+	sessionKey := "secret"
+	// sessionKey, defined := os.LookupEnv("SESSION_KEY")
+	// if !defined {
+	// 	panic("session key not defined")
+	// }
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(session.MiddlewareWithConfig(session.Config{
+		Store:   sessions.NewFilesystemStore(""),
+		Skipper: middleware.DefaultSkipper,
+	}))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(sessionKey))))
+	e.Logger.SetLevel(log.INFO)
 	e.Logger.Fatal(e.Start(":8080"))
 }
