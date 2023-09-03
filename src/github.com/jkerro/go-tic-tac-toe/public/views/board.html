@@ -1,4 +1,5 @@
 {{define "board"}}
+{{template "select-side"}}
 <button class="btn" hx-get="/games" hx-target="main">Back</button>
 <div class="container text-center" hx-ext="ws" ws-connect="/ws/{{.GameId}}">
     <div id="info"></div>
@@ -18,4 +19,15 @@
     </div>
     {{end}}
 </div>
+{{end}}
+
+{{define "select-side"}}
+<dialog open id="select-side">
+    <div>Select side:</div>
+    <form method="dialog">
+        <button hx-post="/select-side/x" hx-target="#select-side" hx-swap="outerHTML">X</button>
+        <button hx-post="/select-side/o" hx-target="#select-side" hx-swap="outerHTML">O</button>
+        <button hx-post="/select-side/spectate" hx-target="#select-side" hx-swap="outerHTML">spectate</button>
+    </form>
+</dialog>
 {{end}}

@@ -63,6 +63,14 @@ func main() {
 		return handlers.CreateGame(context(c))
 	})
 
+	e.POST("/select-side/:side", func(c echo.Context) error {
+		side := c.Param("side")
+		sess := handlers.GetSession(c)
+		sess.Values["side"] = side
+		handlers.SaveSession(sess, c)
+		return c.NoContent(http.StatusOK)
+	})
+
 	e.DELETE("/games/:id", func(c echo.Context) error {
 		return handlers.DeleteGame(context(c))
 	})
