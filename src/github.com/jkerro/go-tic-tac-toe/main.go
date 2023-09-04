@@ -50,6 +50,11 @@ func main() {
 
 	e.GET("/", func(c echo.Context) error {
 		s := handlers.GetSession(c)
+		userId, err := repository.CreateUser(db)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Cannot create user")
+		}
+		s.Values["userId"] = userId
 		handlers.SaveSession(s, c)
 		return handlers.Games(context(c), "main")
 	})
@@ -63,20 +68,7 @@ func main() {
 	})
 
 	e.POST("/select-side/:side", func(c echo.Context) error {
-		side := c.Param("side")
-		allowed := []string{"x", "o", "spectator"}
-		sideCorrect := false
-		for _, a := range allowed {
-			if a == side {
-				sideCorrect = true
-			}
-		}
-		if !sideCorrect {
-			return c.String(http.StatusBadRequest, "Invalid side")
-		}
-		sess := handlers.GetSession(c)
-		sess.Values["side"] = side
-		return handlers.GetBoard(context(c))
+		return handlers.SelectSideAndGetBoard(context(c))
 	})
 
 	e.DELETE("/games/:id", func(c echo.Context) error {
@@ -87,7 +79,24 @@ func main() {
 		sess := handlers.GetSession(c)
 		sess.Values["gameId"] = c.Param("gameId")
 		handlers.SaveSession(sess, c)
-		return c.Render(http.StatusOK, "select-side", "")
+		gameId, err := strconv.Atoi(c.Param("gameId"))
+		if err != nil {
+			c.Logger().Error("could not parse gameId param", c.Param("gameId"))
+			return c.String(http.StatusInternalServerError, "Cannot parse game id")
+		}
+		game, err := repository.GetGame(db, gameId)
+		if err != nil {
+			c.Logger().Error("could not get game with id", gameId)
+			return c.String(http.StatusInternalServerError, "Cannot find game")
+		}
+		type SideSelectorData struct {
+			XSelected bool
+			OSelected bool
+		}
+		return c.Render(http.StatusOK, "select-side", SideSelectorData{
+			XSelected: game.XUserId.Valid,
+			OSelected: game.OUserId.Valid,
+		})
 	})
 
 	channels := handlers.NewChannelPool()
@@ -123,16 +132,17 @@ func main() {
 	sessionKey := "secret"
 	// sessionKey, defined := os.LookupEnv("SESSION_KEY")
 	// if !defined {
-	// 	panic("session key not defined")
+	// 	e.Logger.Fatal("session key not defined")
 	// }
+	sessionKeyByte := []byte(sessionKey)
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(session.MiddlewareWithConfig(session.Config{
-		Store:   sessions.NewFilesystemStore(""),
+		Store:   sessions.NewFilesystemStore("/session"),
 		Skipper: middleware.DefaultSkipper,
 	}))
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(sessionKey))))
+	e.Use(session.Middleware(sessions.NewCookieStore(sessionKeyByte)))
 	e.Logger.SetLevel(log.INFO)
 	e.Logger.Fatal(e.Start(":8080"))
 }

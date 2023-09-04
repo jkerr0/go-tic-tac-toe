@@ -21,14 +21,13 @@ func Games(ctx Context, template string) error {
 func CreateGame(ctx Context) error {
 	c := ctx.EchoCtx
 	name := c.FormValue("name")
-	repository.InsertGame(ctx.Db, name)
-	games, err := repository.GetGames(ctx.Db)
+	err := repository.InsertGame(ctx.Db, name)
 	if err != nil {
-		msg :="Could not retrieve games from database" 
-		c.Logger().Error()
+		msg := "could not create a game"
+		c.Logger().Error(msg)
 		return c.String(http.StatusInternalServerError, msg)
 	}
-	return c.Render(http.StatusOK, "games", games)
+	return Games(ctx, "games")
 }
 
 func DeleteGame(ctx Context) error {
