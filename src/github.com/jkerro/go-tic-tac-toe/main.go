@@ -100,7 +100,7 @@ func main() {
 		if int(game.OUserId.Int32) == userId {
 			sess.Values[sideId] = "o"
 		}
-		if sess.Values[sideId] == nil {
+		if sess.Values[sideId] == nil || sess.Values[sideId] == "spectator" {
 			handlers.SaveSession(sess, c)
 			return c.Render(http.StatusOK, "select-side", handlers.SideSelectorData{
 				XSelected: game.XUserId.Valid,
