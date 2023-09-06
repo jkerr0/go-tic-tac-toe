@@ -1,32 +1,45 @@
 {{define "games-list"}}
 <ul id="games" class="list-group">
     {{range $game := .}}
-    <div id="game-{{$game.Id}}" class="row">
-        <div class="col-6">
-            <li hx-get="/board/{{$game.Id}}" hx-target="main" class="list-group-item list-group-item-action">
-                {{$game.Name}}
-            </li>
+    <li id="game-{{$game.Id}}" class="list-group-item">
+        <div class="row">
+            <div class="col">
+                <div hx-get="/board/{{$game.Id}}" hx-target="main"
+                    class="list-group-item-action p-2">
+                    {{$game.Name}}
+                </div>
+            </div>
+            <div class="col d-flex justify-content-end">
+                <button hx-delete="/games/{{$game.Id}}"
+                    hx-target="#game-{{$game.Id}}" hx-swap="outerHTML"
+                    class="btn btn-outline-danger">
+                    {{template "icon-trash"}}
+                    Delete
+                </button>
+            </div>
         </div>
-        <div class="col-1">
-            <button hx-delete="/games/{{$game.Id}}" hx-target="#game-{{$game.Id}}" hx-swap="outerHTML"
-                class="btn btn-sm btn-danger">
-                {{template "icon-trash"}}
-                Delete
-            </button>
-        </div>
-    </div>
+    </li>
     {{end}}
+    <li class="list-group-item">
+        <form hx-post="/games" hx-target="main">
+            <div class="row mt-3">
+                <div class="col d-flex justify-content-start">
+                    <input name="name" type="text" class="form-control">
+                </div>
+                <div class="col d-flex justify-content-end">
+                    <button class="btn btn-primary">
+                        {{template "icon-plus"}}
+                        Add game
+                    </button>
+                </div>
+            </div>
+        </form>
+    </li>
 </ul>
 {{end}}
 
 {{define "games"}}
-<h1>List of games</h1>
+<h1 class="display-3 text-center mt-3 mb-1">Go + HTMX multiplayer tic-tac-toe</h1>
+<h2 class="text-center mb-3">List of games</h2>
 {{template "games-list" .}}
-<form hx-post="/games" hx-target="main">
-    <input name="name" type="text">
-    <button class="btn btn-primary">
-        {{template "icon-plus"}}
-        Add game
-    </button>
-</form>
 {{end}}
