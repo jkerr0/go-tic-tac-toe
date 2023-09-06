@@ -1,16 +1,24 @@
 {{define "select-side"}}
-    <div>Select side:</div>
-    <form>
-        <button hx-post="/select-side/x" hx-target="main"
-        {{if .XSelected}} 
+<button class="btn" hx-get="/games" hx-target="main">
+    {{template "icon-left-arrow"}}
+    Return to game list
+</button>
+{{if .AlreadySelected}}
+    <div class="alert alert-danger" role="alert">
+        Side already selected
+    </div>
+{{end}}
+
+<div>Select side:</div>
+<form>
+    <button hx-post="/select-side/x" hx-target="main"
+        {{if .XSelected}}
         disabled
-        {{end}}
-        >X</button>
-        <button hx-post="/select-side/o" hx-target="main"
-        {{if .OSelected}} 
+        {{end}}>X</button>
+    <button hx-post="/select-side/o" hx-target="main"
+        {{if .OSelected}}
         disabled
-        {{end}}
-        >O</button>
-        <button hx-post="/select-side/spectator" hx-target="main">spectator</button>
-    </form>
+        {{end}}>O</button>
+    <button hx-post="/select-side/spectator" hx-target="main">spectator</button>
+</form>
 {{end}}

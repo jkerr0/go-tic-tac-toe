@@ -1,5 +1,8 @@
 {{define "board"}}
-<button class="btn" hx-get="/games" hx-target="main">Back</button>
+<button class="btn" hx-get="/games" hx-target="main">
+    {{template "icon-left-arrow"}}
+    Return to game list
+</button>
 <div class="container text-center" hx-ext="ws" ws-connect="/ws/{{.GameId}}">
     <div id="info"></div>
     {{range $rowInx, $row := .Board}}

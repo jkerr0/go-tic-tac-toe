@@ -1,14 +1,20 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/sessions"
 	"github.com/jkerro/go-tic-tac-toe/logic"
 	"github.com/jkerro/go-tic-tac-toe/repository"
 	"github.com/jmoiron/sqlx"
 )
+
+type SideSelectorData struct {
+	XSelected       bool
+	OSelected       bool
+	AlreadySelected bool
+}
 
 func SelectSideAndGetBoard(ctx Context) error {
 	c := ctx.EchoCtx
@@ -25,15 +31,31 @@ func SelectSideAndGetBoard(ctx Context) error {
 	}
 	db := ctx.Db
 	session := GetSession(c)
-	gameId, err := strconv.Atoi(session.Values["gameId"].(string))
+	gameId := session.Values["gameId"].(int)
+	game, err := repository.GetGame(db, gameId)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Game id is required to be an integer")
+		return err
 	}
 
-	if err = selectSide(db, session, gameId, side); err != nil {
+	if alreadySelected, err := selectSide(db, session, game, side); err != nil {
 		return c.String(http.StatusInternalServerError, "Cannot select side")
+	} else if alreadySelected {
+		SaveSession(session, c)
+		return c.Render(http.StatusOK, "select-side", SideSelectorData{
+			XSelected:       game.XUserId.Valid,
+			OSelected:       game.OUserId.Valid,
+			AlreadySelected: alreadySelected,
+		})
 	}
 
+	return GetBoard(ctx)
+}
+
+func GetBoard(ctx Context) error {
+	c := ctx.EchoCtx
+	db := ctx.Db
+	session := GetSession(c)
+	gameId := session.Values["gameId"].(int)
 	moves, err := repository.GetMoves(db, gameId)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Database error")
@@ -47,16 +69,25 @@ func SelectSideAndGetBoard(ctx Context) error {
 	return c.Render(http.StatusOK, "board", BoardData{b.Matrix(), gameId})
 }
 
-func selectSide(db *sqlx.DB, session *sessions.Session, gameId int, side string) error {
+func selectSide(db *sqlx.DB, session *sessions.Session, game repository.Game, side string) (bool, error) {
 	var err error
+	userId := session.Values["userId"].(int)
+	xSelected := game.XUserId.Valid
+	if side == "x" && xSelected {
+		return true, nil
+	}
+	oSelected := game.OUserId.Valid
+	if side == "o" && oSelected {
+		return true, nil
+	}
 	if side == "x" {
-		err = repository.UpdateGameXUserId(db, gameId, session.Values["userId"].(int))
+		err = repository.UpdateGameXUserId(db, game.Id, userId)
 	} else if side == "o" {
-		err = repository.UpdateGameOUserId(db, gameId, session.Values["userId"].(int))
+		err = repository.UpdateGameOUserId(db, game.Id, userId)
 	}
 	if err != nil {
-		return err
+		return false, err
 	}
-	session.Values["side"] = side
-	return nil
+	session.Values[fmt.Sprintf("side-%d", game.Id)] = side
+	return false, nil
 }

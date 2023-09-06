@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -50,11 +51,13 @@ func main() {
 
 	e.GET("/", func(c echo.Context) error {
 		s := handlers.GetSession(c)
-		userId, err := repository.CreateUser(db)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "Cannot create user")
+		if s.Values["userId"] == nil {
+			userId, err := repository.CreateUser(db)
+			if err != nil {
+				return c.String(http.StatusInternalServerError, "Cannot create user")
+			}
+			s.Values["userId"] = userId
 		}
-		s.Values["userId"] = userId
 		handlers.SaveSession(s, c)
 		return handlers.Games(context(c), "main")
 	})
@@ -77,26 +80,35 @@ func main() {
 
 	e.GET("/board/:gameId", func(c echo.Context) error {
 		sess := handlers.GetSession(c)
-		sess.Values["gameId"] = c.Param("gameId")
 		handlers.SaveSession(sess, c)
 		gameId, err := strconv.Atoi(c.Param("gameId"))
 		if err != nil {
 			c.Logger().Error("could not parse gameId param", c.Param("gameId"))
 			return c.String(http.StatusInternalServerError, "Cannot parse game id")
 		}
+		sess.Values["gameId"] = gameId
 		game, err := repository.GetGame(db, gameId)
 		if err != nil {
 			c.Logger().Error("could not get game with id", gameId)
 			return c.String(http.StatusInternalServerError, "Cannot find game")
 		}
-		type SideSelectorData struct {
-			XSelected bool
-			OSelected bool
+		sideId := fmt.Sprintf("side-%d", gameId)
+		userId := sess.Values["userId"].(int)
+		if int(game.XUserId.Int32) == userId {
+			sess.Values[sideId] = "x"
 		}
-		return c.Render(http.StatusOK, "select-side", SideSelectorData{
-			XSelected: game.XUserId.Valid,
-			OSelected: game.OUserId.Valid,
-		})
+		if int(game.OUserId.Int32) == userId {
+			sess.Values[sideId] = "o"
+		}
+		if sess.Values[sideId] == nil {
+			handlers.SaveSession(sess, c)
+			return c.Render(http.StatusOK, "select-side", handlers.SideSelectorData{
+				XSelected: game.XUserId.Valid,
+				OSelected: game.OUserId.Valid,
+				AlreadySelected: false,
+			})
+		}
+		return handlers.GetBoard(context(c))
 	})
 
 	channels := handlers.NewChannelPool()
@@ -111,7 +123,7 @@ func main() {
 			c.String(http.StatusBadRequest, "Game id is required to be an integer")
 		}
 
-		side := handlers.GetSession(c).Values["side"].(string)
+		side := handlers.GetSession(c).Values[fmt.Sprintf("side-%d", gameId)].(string)
 		channel := channels.Join(ws, gameId)
 
 		defer func() {
