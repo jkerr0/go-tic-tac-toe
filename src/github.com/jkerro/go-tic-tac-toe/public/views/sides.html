@@ -1,24 +1,35 @@
 {{define "select-side"}}
-<button class="btn" hx-get="/games" hx-target="main">
+<button class="btn btn-outline-secondary" hx-get="/games" hx-target="main">
     {{template "icon-left-arrow"}}
     Return to game list
 </button>
 {{if .AlreadySelected}}
-    <div class="alert alert-danger" role="alert">
-        Side already selected
-    </div>
+<div class="alert alert-danger" role="alert">
+    Side already selected
+</div>
 {{end}}
 
-<div>Select side:</div>
-<form>
-    <button hx-post="/select-side/x" hx-target="main"
-        {{if .XSelected}}
-        disabled
-        {{end}}>X</button>
-    <button hx-post="/select-side/o" hx-target="main"
-        {{if .OSelected}}
-        disabled
-        {{end}}>O</button>
-    <button hx-post="/select-side/spectator" hx-target="main">spectator</button>
-</form>
+<div>
+    <h1 class="display-1 text-center">Select side</h1>
+    <div class="row">
+        <button hx-post="/select-side/x" hx-target="main"
+            class="col text-center btn btn-primary m-3 py-3"
+            {{if .XSelected}}
+            disabled
+            {{end}}>
+            <p class="display-4">X</p>
+        </button>
+        <button hx-post="/select-side/o" hx-target="main"
+            class="col text-center btn btn-primary m-3 py-3"
+            {{if .OSelected}}
+            disabled
+            {{end}}>
+            <p class="display-4">O</p>
+        </button>
+        <button hx-post="/select-side/spectator" hx-target="main"
+            class="col text-center btn btn-outline-secondary m-3 py-3">
+            <p class="display-6">spectator</p>
+        </button>
+    </div>
+</div>
 {{end}}
