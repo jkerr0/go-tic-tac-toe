@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/sessions"
 	"github.com/jkerro/go-tic-tac-toe/logic"
@@ -49,6 +50,41 @@ func SelectSideAndGetBoard(ctx Context) error {
 	}
 
 	return GetBoard(ctx)
+}
+
+func CheckSideAndGetBoard(ctx Context) error {
+		c := ctx.EchoCtx
+		db := ctx.Db
+		sess := GetSession(c)
+		SaveSession(sess, c)
+		gameId, err := strconv.Atoi(c.Param("gameId"))
+		if err != nil {
+			c.Logger().Error("could not parse gameId param", c.Param("gameId"))
+			return c.String(http.StatusInternalServerError, "Cannot parse game id")
+		}
+		sess.Values["gameId"] = gameId
+		game, err := repository.GetGame(db, gameId)
+		if err != nil {
+			c.Logger().Error("could not get game with id", gameId)
+			return c.String(http.StatusInternalServerError, "Cannot find game")
+		}
+		sideId := fmt.Sprintf("side-%d", gameId)
+		userId := sess.Values["userId"].(int)
+		if int(game.XUserId.Int32) == userId {
+			sess.Values[sideId] = "x"
+		}
+		if int(game.OUserId.Int32) == userId {
+			sess.Values[sideId] = "o"
+		}
+		if sess.Values[sideId] == nil || sess.Values[sideId] == "spectator" {
+			SaveSession(sess, c)
+			return c.Render(http.StatusOK, "select-side", SideSelectorData{
+				XSelected: game.XUserId.Valid,
+				OSelected: game.OUserId.Valid,
+				AlreadySelected: false,
+			})
+		}
+		return GetBoard(ctx)
 }
 
 func GetBoard(ctx Context) error {

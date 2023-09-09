@@ -63,52 +63,33 @@ func main() {
 	})
 
 	e.GET("/games", func(c echo.Context) error {
-		return handlers.Games(context(c), "games")
+		return handlers.HtmxOnly(c, func (c echo.Context) error {
+			return handlers.Games(context(c), "games")
+		})
 	})
 
 	e.POST("/games", func(c echo.Context) error {
-		return handlers.CreateGame(context(c))
+		return handlers.HtmxOnly(c, func (c echo.Context) error {
+			return handlers.CreateGame(context(c))
+		})
 	})
 
 	e.POST("/select-side/:side", func(c echo.Context) error {
-		return handlers.SelectSideAndGetBoard(context(c))
+		return handlers.HtmxOnly(c, func (c echo.Context) error {
+			return handlers.SelectSideAndGetBoard(context(c))
+		})
 	})
 
 	e.DELETE("/games/:id", func(c echo.Context) error {
-		return handlers.DeleteGame(context(c))
+		return handlers.HtmxOnly(c, func (c echo.Context) error {
+			return handlers.DeleteGame(context(c))
+		})
 	})
 
 	e.GET("/board/:gameId", func(c echo.Context) error {
-		sess := handlers.GetSession(c)
-		handlers.SaveSession(sess, c)
-		gameId, err := strconv.Atoi(c.Param("gameId"))
-		if err != nil {
-			c.Logger().Error("could not parse gameId param", c.Param("gameId"))
-			return c.String(http.StatusInternalServerError, "Cannot parse game id")
-		}
-		sess.Values["gameId"] = gameId
-		game, err := repository.GetGame(db, gameId)
-		if err != nil {
-			c.Logger().Error("could not get game with id", gameId)
-			return c.String(http.StatusInternalServerError, "Cannot find game")
-		}
-		sideId := fmt.Sprintf("side-%d", gameId)
-		userId := sess.Values["userId"].(int)
-		if int(game.XUserId.Int32) == userId {
-			sess.Values[sideId] = "x"
-		}
-		if int(game.OUserId.Int32) == userId {
-			sess.Values[sideId] = "o"
-		}
-		if sess.Values[sideId] == nil || sess.Values[sideId] == "spectator" {
-			handlers.SaveSession(sess, c)
-			return c.Render(http.StatusOK, "select-side", handlers.SideSelectorData{
-				XSelected: game.XUserId.Valid,
-				OSelected: game.OUserId.Valid,
-				AlreadySelected: false,
-			})
-		}
-		return handlers.GetBoard(context(c))
+		return handlers.HtmxOnly(c, func (c echo.Context) error {
+			return handlers.CheckSideAndGetBoard(context(c))
+		})
 	})
 
 	channels := handlers.NewChannelPool()
