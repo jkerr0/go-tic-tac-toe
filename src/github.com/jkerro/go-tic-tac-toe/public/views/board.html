@@ -3,7 +3,7 @@
     {{template "icon-left-arrow"}}
     Return to game list
 </button>
-<div class="container text-center" hx-ext="ws" ws-connect="/ws/{{.GameId}}">
+<div id="board" class="container text-center" hx-ext="ws" ws-connect="/ws/{{.GameId}}">
     <div id="info"></div>
     {{range $rowInx, $row := .Board}}
     <div class="board-row">

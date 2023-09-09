@@ -9,6 +9,23 @@
     border: 2px;
     border-style: solid;
     border-color: cyan;
+    transition: background-color 200ms;
+}
+
+.board-row div.board-cell:nth-child(1) {
+    border-left: none;
+}
+
+.board-row div.board-cell:nth-child(3) {
+    border-right: none;
+}
+
+:nth-child(1 of div.board-row) .board-cell {
+    border-top: none;
+}
+
+:nth-child(3 of div.board-row) .board-cell {
+    border-bottom: none;
 }
 
 .board-cell button {
@@ -18,7 +35,15 @@
     align-items: center;
     background: none;
     border: none;
-    transition: 200ms;
+}
+
+@keyframes fade-in {
+   from {opacity: 0} 
+   to {opacity: 1}
+}
+
+.occupied {
+    animation: fade-in 500ms ease-in;
 }
 
 .board-cell button svg{
@@ -26,6 +51,6 @@
     height: 66%;
 }
 
-.board-cell button:hover {
+.board-cell:hover {
     background-color: lightgray;
 }

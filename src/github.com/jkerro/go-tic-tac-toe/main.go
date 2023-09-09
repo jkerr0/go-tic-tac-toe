@@ -63,31 +63,37 @@ func main() {
 	})
 
 	e.GET("/games", func(c echo.Context) error {
-		return handlers.HtmxOnly(c, func (c echo.Context) error {
+		return handlers.HtmxOnly(c, func(c echo.Context) error {
 			return handlers.Games(context(c), "games")
 		})
 	})
 
+	e.GET("/games-list-elements", func(c echo.Context) error {
+		return handlers.HtmxOnly(c, func(c echo.Context) error {
+			return handlers.Games(context(c), "games-list-elements")
+		})
+	})
+
 	e.POST("/games", func(c echo.Context) error {
-		return handlers.HtmxOnly(c, func (c echo.Context) error {
+		return handlers.HtmxOnly(c, func(c echo.Context) error {
 			return handlers.CreateGame(context(c))
 		})
 	})
 
 	e.POST("/select-side/:side", func(c echo.Context) error {
-		return handlers.HtmxOnly(c, func (c echo.Context) error {
+		return handlers.HtmxOnly(c, func(c echo.Context) error {
 			return handlers.SelectSideAndGetBoard(context(c))
 		})
 	})
 
 	e.DELETE("/games/:id", func(c echo.Context) error {
-		return handlers.HtmxOnly(c, func (c echo.Context) error {
+		return handlers.HtmxOnly(c, func(c echo.Context) error {
 			return handlers.DeleteGame(context(c))
 		})
 	})
 
 	e.GET("/board/:gameId", func(c echo.Context) error {
-		return handlers.HtmxOnly(c, func (c echo.Context) error {
+		return handlers.HtmxOnly(c, func(c echo.Context) error {
 			return handlers.CheckSideAndGetBoard(context(c))
 		})
 	})

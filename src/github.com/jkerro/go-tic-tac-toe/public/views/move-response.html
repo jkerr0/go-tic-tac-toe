@@ -1,5 +1,5 @@
 {{define "move-response"}}
-<button id="row-{{.Row}}-col-{{.Col}}">
+<button id="row-{{.Row}}-col-{{.Col}}" class="occupied">
     {{ if eq .BoardElement "x"}}
         {{ template "icon-cross" }}
     {{ else if eq .BoardElement "o"}}

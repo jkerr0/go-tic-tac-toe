@@ -1,5 +1,27 @@
 {{define "games-list"}}
 <ul id="games" class="list-group">
+    <div id="elements" hx-get="/games-list-elements" hx-trigger="every 3s">
+        {{template "games-list-elements" .}}
+    </div>
+    <li class="list-group-item">
+        <form hx-post="/games" hx-target="main">
+            <div class="row mt-3">
+                <div class="col d-flex justify-content-start">
+                    <input name="name" type="text" class="form-control">
+                </div>
+                <div class="col d-flex justify-content-end">
+                    <button class="btn btn-primary">
+                        {{template "icon-plus"}}
+                        Add game
+                    </button>
+                </div>
+            </div>
+        </form>
+    </li>
+</ul>
+{{end}}
+
+{{define "games-list-elements"}}
     {{range $game := .}}
     <li id="game-{{$game.Id}}" class="list-group-item">
         <div class="row">
@@ -20,22 +42,6 @@
         </div>
     </li>
     {{end}}
-    <li class="list-group-item">
-        <form hx-post="/games" hx-target="main">
-            <div class="row mt-3">
-                <div class="col d-flex justify-content-start">
-                    <input name="name" type="text" class="form-control">
-                </div>
-                <div class="col d-flex justify-content-end">
-                    <button class="btn btn-primary">
-                        {{template "icon-plus"}}
-                        Add game
-                    </button>
-                </div>
-            </div>
-        </form>
-    </li>
-</ul>
 {{end}}
 
 {{define "games"}}
