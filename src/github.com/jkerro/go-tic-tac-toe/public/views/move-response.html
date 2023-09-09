@@ -1,4 +1,10 @@
 {{define "move-response"}}
-<button id="row-{{.Row}}-col-{{.Col}}">{{.BoardElement}}</button>
+<button id="row-{{.Row}}-col-{{.Col}}">
+    {{ if eq .BoardElement "x"}}
+        {{ template "icon-cross" }}
+    {{ else if eq .BoardElement "o"}}
+        {{ template "icon-circle"}}
+    {{end}}
+</button>
 <div id="info">{{.Info}}</div>
 {{end}}

@@ -6,14 +6,20 @@
 <div class="container text-center" hx-ext="ws" ws-connect="/ws/{{.GameId}}">
     <div id="info"></div>
     {{range $rowInx, $row := .Board}}
-    <div class="row">
+    <div class="board-row">
         {{range $colInx, $col := $row }}
-        <div class="col">
+        <div class="board-cell">
             <form ws-send>
                 <input type="hidden" name="col" value="{{$colInx}}">
                 <input type="hidden" name="row" value="{{$rowInx}}">
                 <button id="row-{{$rowInx}}-col-{{$colInx}}">
-                    {{$col}}
+                    {{if not (eq $col "free")}}
+                        {{ if eq $col "x"}}
+                            {{ template "icon-cross" }}
+                        {{ else if eq $col "o"}}
+                            {{ template "icon-circle"}}
+                        {{end}}
+                    {{end}}
                 </button>
             </form>
         </div>
