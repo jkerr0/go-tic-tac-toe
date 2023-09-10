@@ -12,13 +12,11 @@
             <form ws-send>
                 <input type="hidden" name="col" value="{{$colInx}}">
                 <input type="hidden" name="row" value="{{$rowInx}}">
-                <button id="row-{{$rowInx}}-col-{{$colInx}}">
-                    {{if not (eq $col "free")}}
-                        {{ if eq $col "x"}}
-                            {{ template "icon-cross" }}
-                        {{ else if eq $col "o"}}
-                            {{ template "icon-circle"}}
-                        {{end}}
+                <button id="row-{{$rowInx}}-col-{{$colInx}}" class="{{if eq $col "free" }}free{{else}}occupied{{end}}">
+                    {{ if eq $col "x"}}
+                        {{ template "icon-cross" }}
+                    {{ else if eq $col "o"}}
+                        {{ template "icon-circle"}}
                     {{end}}
                 </button>
             </form>

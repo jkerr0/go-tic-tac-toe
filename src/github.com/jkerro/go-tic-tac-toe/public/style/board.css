@@ -1,15 +1,28 @@
+#board {
+    width: 80vw;
+    height: 80vw;
+}
+
+@media screen and (min-width: 48em) {
+    #board {
+        width: 80vh;
+        height: 80vh;
+    }
+}
+
 .board-row {
     display: flex;
     justify-content: center;
+    width: 100%;
+    height: 33%;
 }
 
 .board-cell {
-    width: 10vw;
-    height: 10vw; 
+    width: 32%;
+    height: 100%;
     border: 2px;
     border-style: solid;
     border-color: cyan;
-    transition: background-color 200ms;
 }
 
 .board-row div.board-cell:nth-child(1) {
@@ -35,22 +48,36 @@
     align-items: center;
     background: none;
     border: none;
+    border-radius: 0.5rem;
+    transition: all 200ms;
 }
 
 @keyframes fade-in {
-   from {opacity: 0} 
-   to {opacity: 1}
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
 }
 
-.occupied {
-    animation: fade-in 500ms ease-in;
+button.occupied {
+    animation: fade-in 500ms ease-out;
 }
 
-.board-cell button svg{
+.board-cell button svg {
     width: 66%;
     height: 66%;
 }
 
-.board-cell:hover {
-    background-color: lightgray;
+.board-cell button.free:hover, .board-cell button.free:focus-visible {
+    background-color: #d3d3d3;
+}
+.board-cell button:focus-visible {
+    outline: 5px solid black;
+}
+
+.board-cell button.free:active {
+    background-color: #a3a3a3;
 }
