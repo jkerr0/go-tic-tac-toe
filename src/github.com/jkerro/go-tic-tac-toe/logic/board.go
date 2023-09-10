@@ -1,6 +1,8 @@
 package logic
 
-import "github.com/jkerro/go-tic-tac-toe/repository"
+import (
+	"github.com/jkerro/go-tic-tac-toe/repository"
+)
 
 type BoardElement string
 

@@ -28,13 +28,13 @@ func GetMaxMoveIndex(db *sqlx.DB, gameId int) (int, error) {
 	index := make([]sql.NullInt32, 1)
 	err := db.Select(&index, "SELECT max(inx) FROM move WHERE game_id=?", gameId)
 	if len(index) == 0 || !index[0].Valid {
-		return 0, err
+		return -1, err
 	}
 	return int(index[0].Int32), err
 }
 
 func GetMoves(db *sqlx.DB, gameId int) ([]Move, error) {
 	moves := []Move{}
-	err := db.Select(&moves, "SELECT * FROM move WHERE game_id=?", gameId)
+	err := db.Select(&moves, "SELECT * FROM move WHERE game_id=? ORDER BY inx ASC", gameId)
 	return moves, err
 }
