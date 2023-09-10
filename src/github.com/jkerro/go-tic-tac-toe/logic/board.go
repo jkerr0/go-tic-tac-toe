@@ -16,6 +16,10 @@ type Board struct {
 	Elements []BoardElement
 }
 
+func (b *Board) IsFree(col int, row int) bool {
+	return b.Elements[3*row+col] == FREE
+}
+
 func (b *Board) Row(index int) []BoardElement {
 	return b.Elements[index*3 : index*3+3]
 }

@@ -1,6 +1,6 @@
 package logic
 
-func CheckWin(board *Board) bool {
+func (board *Board) CheckWin() bool {
 	for i := 0; i < 2; i++ {
 		row := board.Row(i)
 		if checkElementsForWin(row) {

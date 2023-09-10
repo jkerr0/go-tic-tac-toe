@@ -25,10 +25,10 @@ type moveResponse struct {
 func HandleMoveMessage(ctx Context, message []byte, gameId int, channel *Channel, side string) {
 	c := ctx.EchoCtx
 
-	if ok, err := verifyMove(ctx, gameId, side); !ok {
+	if ok, err := verifySide(ctx, gameId, side); !ok {
 		return
 	} else if err != nil {
-		c.Logger().Error("could not verify move", err)
+		c.Logger().Error("could not verify side", err)
 		return
 	}
 
@@ -39,6 +39,10 @@ func HandleMoveMessage(ctx Context, message []byte, gameId int, channel *Channel
 	}
 	col := parsedMove.Col
 	row := parsedMove.Row
+
+	if !verifyMove(ctx, gameId, col, row) {
+		return
+	}
 
 	move := &repository.Move{
 		Col:    col,
@@ -80,11 +84,19 @@ func parseMessage(message []byte) (move, error) {
 }
 
 func checkGameWin(db *sqlx.DB, gameId int) (bool, error) {
-	moves, err := repository.GetMoves(db, gameId)
-	if err != nil {
-		return false, err
+	if board, err := getBoard(db, gameId); err == nil {
+		return board.CheckWin(), nil
+	} else {
+		return false, nil
 	}
-	return logic.CheckWin(logic.GetBoard(moves)), nil
+}
+
+func getBoard(db *sqlx.DB, gameId int) (*logic.Board, error) {
+	if moves, err := repository.GetMoves(db, gameId); err == nil {
+		return logic.GetBoard(moves), nil
+	} else {
+		return nil, err
+	}
 }
 
 func getResponse(ctx Context, move *repository.Move, gameId int) (string, error) {
@@ -110,7 +122,7 @@ func getResponse(ctx Context, move *repository.Move, gameId int) (string, error)
 	return responseBuf.String(), nil
 }
 
-func verifyMove(ctx Context, gameId int, side string) (bool, error) {
+func verifySide(ctx Context, gameId int, side string) (bool, error) {
 	c := ctx.EchoCtx
 	currentMoveIndex, err := repository.GetMaxMoveIndex(ctx.Db, gameId)
 	if err != nil {
@@ -127,4 +139,12 @@ func verifyMove(ctx Context, gameId int, side string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func verifyMove(ctx Context, gameId int, col int, row int) bool {
+	if board, err := getBoard(ctx.Db, gameId); err == nil {
+		return board.IsFree(col, row)
+	} else {
+		return false
+	}
 }
