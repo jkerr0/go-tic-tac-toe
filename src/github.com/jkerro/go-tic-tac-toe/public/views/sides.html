@@ -10,20 +10,14 @@
 {{end}}
 
 <div>
-    <h1 class="display-1 text-center">Select side</h1>
+    <h2 class="display-1 text-center">Select side</h1>
     <div class="row">
-        <button hx-post="/select-side/x" hx-target="main"
-            class="col text-center btn btn-primary m-3 py-3"
-            {{if .XSelected}}
-            disabled
-            {{end}}>
+        <button hx-post="/select-side/x" hx-target="main" class="col text-center btn btn-primary m-3 py-3" {{if
+            .XSelected}} disabled {{end}}>
             <p class="display-4">X</p>
         </button>
-        <button hx-post="/select-side/o" hx-target="main"
-            class="col text-center btn btn-primary m-3 py-3"
-            {{if .OSelected}}
-            disabled
-            {{end}}>
+        <button hx-post="/select-side/o" hx-target="main" class="col text-center btn btn-primary m-3 py-3" {{if
+            .OSelected}} disabled {{end}}>
             <p class="display-4">O</p>
         </button>
         <button hx-post="/select-side/spectator" hx-target="main"
