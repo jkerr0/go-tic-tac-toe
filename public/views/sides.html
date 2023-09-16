@@ -1,28 +1,32 @@
 {{define "select-side"}}
-<button class="btn btn-outline-secondary" hx-get="/games" hx-target="main">
-    {{template "icon-left-arrow"}}
-    Return to game list
+<button class="rounded-md transition hover:bg-gray-100 p-3" hx-get="/games" hx-target="main">
+    <div class="flex items-center space-x-1">
+        {{template "icon-left-arrow"}}
+        <span class="text-lg">Return to game list</span>
+    </div>
 </button>
 {{if .AlreadySelected}}
-<div class="alert alert-danger" role="alert">
+<div class="p-3 rounded-md bg-red-300 text-red-500 shadow mb-3" role="alert">
     Side already selected
 </div>
 {{end}}
 
-<div>
-    <h2 class="display-1 text-center">Select side</h1>
-    <div class="row">
-        <button hx-post="/select-side/x" hx-target="main" class="col text-center btn btn-primary m-3 py-3" {{if
-            .XSelected}} disabled {{end}}>
-            <p class="display-4">X</p>
+<div class="rounded-md border shadow p-3 space-y-3 h-1/2 lg:h-2/3 flex flex-col justify-around">
+    <h2 class="text-4xl lg:text-6xl text-center">Select side</h2>
+    <div class="flex row justify-center space-x-3 lg:h-48 h-28">
+        <button hx-post="/select-side/x" hx-target="main"
+            class="w-1/4 text-white rounded-md bg-cyan-400 transition hover:bg-cyan-500 px-3 h-full" {{if .XSelected}} disabled
+            {{end}}>
+            <p class="lg:text-4xl text-xl">X</p>
         </button>
-        <button hx-post="/select-side/o" hx-target="main" class="col text-center btn btn-primary m-3 py-3" {{if
-            .OSelected}} disabled {{end}}>
-            <p class="display-4">O</p>
+        <button hx-post="/select-side/o" hx-target="main"
+            class="w-1/4 text-white rounded-md bg-cyan-400 transition hover:bg-cyan-500 px-3 h-full" {{if .OSelected}} disabled
+            {{end}}>
+            <p class="lg:text-4xl text-xl">O</p>
         </button>
         <button hx-post="/select-side/spectator" hx-target="main"
-            class="col text-center btn btn-outline-secondary m-3 py-3">
-            <p class="display-6">spectator</p>
+            class="w-1/4 rounded-md bg-gray-50 transition hover:bg-gray-100 px-3 h-full">
+            <p class="lg:text-4xl text-xl">spectator</p>
         </button>
     </div>
 </div>

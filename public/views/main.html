@@ -14,11 +14,11 @@
         <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
         <link rel="stylesheet" type="text/css" href="/style/board.css">
     </head>
-    <body class="bg-gray-20">
+    <body class="bg-gray-20 h-screen">
         <header class="p-2 text-center border mb-3">
             <h1 class="text-xl">Go + HTMX multiplayer tic-tac-toe</h1>
         </header>
-        <main class="container mx-auto">
+        <main class="container mx-auto h-full">
             {{template "games" .}}
         </main>
     </body>

@@ -8,7 +8,7 @@
         <form hx-post="/games" hx-target="main">
             <div class="flex row justify-around">
                 <input required id="game-name" name="name" type="text" class="rounded-md border w-10/12 px-1 py-2">
-                <button class="rounded-md px-3 py-2 text-white bg-lime-400 hover:bg-lime-500">
+                <button class="rounded-md px-3 py-2 text-white bg-lime-400 transition hover:bg-lime-500">
                     {{template "icon-plus"}}
                 </button>
             </div>
@@ -21,11 +21,11 @@
 {{range $game := .}}
 <li id="game-{{$game.Id}}" class="flex row justify-around py-1">
     <button hx-get="/board/{{$game.Id}}" hx-target="main"
-        class="rounded-md text-white bg-cyan-400 hover:bg-cyan-500 p-2 w-10/12">
+        class="rounded-md text-white bg-cyan-400 transition hover:bg-cyan-500 p-2 w-10/12 font-bold">
         {{$game.Name}}
     </button>
     <button hx-delete="/games/{{$game.Id}}" hx-target="#game-{{$game.Id}}" hx-swap="outerHTML"
-        class="justify-self-end rounded-md px-3 py-2 text-white bg-red-400 hover:bg-red-500" title="Delete">
+        class="justify-self-end rounded-md px-3 py-2 text-white bg-red-400 transition hover:bg-red-500" title="Delete">
         {{template "icon-trash"}}
     </button>
 </li>
@@ -33,7 +33,7 @@
 {{end}}
 
 {{define "games"}}
-<div class="flex items-center space-x-1 mb-3">
+<div class="flex items-center space-x-1 p-3">
     {{template "icon-list"}}
     <h2 class="text-lg">List of games</h2>
 </div>
