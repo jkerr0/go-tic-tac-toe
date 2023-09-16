@@ -1,20 +1,16 @@
 {{define "games-list"}}
-<ul id="games" class="list-group">
-    <div id="elements" hx-get="/games-list-elements" hx-trigger="every 3s" class="list-group list-group-item">
+<ul id="games" class="space-y-3 rounded-md border shadow p-1">
+    <div id="elements" hx-get="/games-list-elements" hx-trigger="every 3s"
+        class="w-full space-y-1 p-1 border rounded-md shadow">
         {{template "games-list-elements" .}}
     </div>
-    <li class="list-group-item">
+    <li class="py-2 px-1">
         <form hx-post="/games" hx-target="main">
-            <div class="row mt-3 align-items-center justify-content-between">
-                <div class="col-10">
-                    <input id="game-name" name="name" type="text" class="form-control">
-                </div>
-                <div class="col-2 d-flex justify-content-end">
-                    <button class="btn btn-primary">
-                        {{template "icon-plus"}}
-                        Add game
-                    </button>
-                </div>
+            <div class="flex row justify-around">
+                <input required id="game-name" name="name" type="text" class="rounded-md border w-10/12 px-1 py-2">
+                <button class="rounded-md px-3 py-2 text-white bg-lime-400 hover:bg-lime-500">
+                    {{template "icon-plus"}}
+                </button>
             </div>
         </form>
     </li>
@@ -23,25 +19,23 @@
 
 {{define "games-list-elements"}}
 {{range $game := .}}
-<li id="game-{{$game.Id}}" class="list-group-item">
-    <div class="row">
-        <div class="col-10">
-            <div hx-get="/board/{{$game.Id}}" hx-target="main" class="list-group-item-action p-2">
-                {{$game.Name}}
-            </div>
-        </div>
-        <div class="col-2 d-flex justify-content-end">
-            <button hx-delete="/games/{{$game.Id}}" hx-target="#game-{{$game.Id}}" hx-swap="outerHTML"
-                class="btn btn-outline-danger px-3" title="Delete">
-                {{template "icon-trash"}}
-            </button>
-        </div>
-    </div>
+<li id="game-{{$game.Id}}" class="flex row justify-around py-1">
+    <button hx-get="/board/{{$game.Id}}" hx-target="main"
+        class="rounded-md text-white bg-cyan-400 hover:bg-cyan-500 p-2 w-10/12">
+        {{$game.Name}}
+    </button>
+    <button hx-delete="/games/{{$game.Id}}" hx-target="#game-{{$game.Id}}" hx-swap="outerHTML"
+        class="justify-self-end rounded-md px-3 py-2 text-white bg-red-400 hover:bg-red-500" title="Delete">
+        {{template "icon-trash"}}
+    </button>
 </li>
 {{end}}
 {{end}}
 
 {{define "games"}}
-<h2 class="mb-3">List of games</h2>
+<div class="flex items-center space-x-1 mb-3">
+    {{template "icon-list"}}
+    <h2 class="text-lg">List of games</h2>
+</div>
 {{template "games-list" .}}
 {{end}}
