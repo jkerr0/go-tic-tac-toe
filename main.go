@@ -136,6 +136,10 @@ func main() {
 	sessionKeyByte := []byte(sessionKey)
 
 	e.Static("/style", "/public/style")
+  e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+      Root: "/",
+      Browser: false,
+  }))
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(session.MiddlewareWithConfig(session.Config{
