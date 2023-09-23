@@ -1,0 +1,8 @@
+{{define "back-button"}}
+<button class="rounded-md transition hover:bg-gray-100 p-3" hx-get="/games" hx-target="main">
+    <div class="flex items-center space-x-1">
+        {{template "icon-left-arrow"}}
+        <span class="text-lg">Return to game list</span>
+    </div>
+</button>
+{{end}}

@@ -41,11 +41,12 @@
     border-bottom: none;
 }
 
-.board-cell button {
+.board-cell form button {
     width: 100%;
     height: 100%;
-    text-align: center;
+    display: flex;
     align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     border-radius: 0.5rem;
@@ -71,7 +72,7 @@ button.occupied {
     animation: fade-in 500ms ease-out;
 }
 
-.board-cell button svg {
+.board-cell form button svg {
     width: 66%;
     height: 66%;
 }

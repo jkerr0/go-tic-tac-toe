@@ -1,28 +1,28 @@
 {{define "board"}}
-<button class="btn btn-outline-secondary" hx-get="/games" hx-target="main">
-    {{template "icon-left-arrow"}}
-    Return to game list
-</button>
-<div id="board" class="container text-center" hx-ext="ws" ws-connect="/ws/{{.GameId}}">
-    <div id="info"></div>
-    {{range $rowInx, $row := .Board}}
-    <div class="board-row">
-        {{range $colInx, $col := $row }}
-        <div class="board-cell">
-            <form ws-send>
-                <input type="hidden" name="col" value="{{$colInx}}">
-                <input type="hidden" name="row" value="{{$rowInx}}">
-                <button id="row-{{$rowInx}}-col-{{$colInx}}" class="{{if eq $col "free" }}free{{else}}occupied{{end}}">
-                    {{ if eq $col "x"}}
-                        {{ template "icon-cross" }}
-                    {{ else if eq $col "o"}}
-                        {{ template "icon-circle"}}
-                    {{end}}
-                </button>
-            </form>
+{{template "back-button"}}
+<div class="flex w-full justify-center rounded-md border shadow py-5">
+    <div id="board" hx-ext="ws" ws-connect="/ws/{{.GameId}}">
+        <div id="info"></div>
+        {{range $rowInx, $row := .Board}}
+        <div class="board-row">
+            {{range $colInx, $col := $row }}
+            <div class="board-cell">
+                <form ws-send>
+                    <input type="hidden" name="col" value="{{$colInx}}">
+                    <input type="hidden" name="row" value="{{$rowInx}}">
+                    <button id="row-{{$rowInx}}-col-{{$colInx}}" class="{{if eq $col "free"}}free{{else}}occupied{{end}}">
+                        {{ if eq $col "x"}}
+                            {{ template "icon-cross" }}
+                        {{ else if eq $col "o"}}
+                            {{ template "icon-circle"}}
+                        {{end}}
+                    </button>
+                </form>
+            </div>
+            {{end}}
         </div>
         {{end}}
     </div>
-    {{end}}
+
 </div>
 {{end}}
