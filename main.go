@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/gommon/log"
@@ -18,7 +19,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	_ "modernc.org/sqlite"
+	_ "github.com/lib/pq"
+
+	"github.com/joho/godotenv"
 )
 
 type Template struct {
@@ -34,8 +37,18 @@ var (
 )
 
 func main() {
+	err := godotenv.Load(".env")
 	e := echo.New()
-	db, err := sqlx.Connect("sqlite", "test.db")
+	if err != nil {
+		e.Logger.Fatal("Could not load env file")
+	}
+	dbName := os.Getenv("POSTGRES_DB")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	dbPort := os.Getenv("POSTGRES_PORT")
+	connectionString := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s", dbUser, dbPassword, dbPort, dbName)
+	e.Logger.SetLevel(log.INFO)
+	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
 		e.Logger.Fatal("Could not connect to the database")
 	}
@@ -128,11 +141,10 @@ func main() {
 		}
 
 	})
-	sessionKey := "secret"
-	// sessionKey, defined := os.LookupEnv("SESSION_KEY")
-	// if !defined {
-	// 	e.Logger.Fatal("session key not defined")
-	// }
+	sessionKey, defined := os.LookupEnv("SESSION_KEY")
+	if !defined {
+		e.Logger.Fatal("session key not defined")
+	}
 	sessionKeyByte := []byte(sessionKey)
 
 	e.Static("/style", "/public/style")
@@ -147,6 +159,5 @@ func main() {
 		Skipper: middleware.DefaultSkipper,
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore(sessionKeyByte)))
-	e.Logger.SetLevel(log.INFO)
 	e.Logger.Fatal(e.Start(":8080"))
 }
