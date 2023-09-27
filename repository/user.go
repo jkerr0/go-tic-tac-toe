@@ -8,7 +8,7 @@ type User struct {
 
 func CreateUser(db *sqlx.DB) (int, error) {
 	tx := db.MustBegin()
-	res := tx.MustExec("INSERT INTO user DEFAULT VALUES")
+	res := tx.MustExec("INSERT INTO app_user DEFAULT VALUES;")
 	id, err := res.LastInsertId()
 	if err != nil {
 		tx.Rollback()

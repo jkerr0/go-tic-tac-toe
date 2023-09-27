@@ -4,21 +4,21 @@ import "github.com/jmoiron/sqlx"
 
 func CreateDatabase(db *sqlx.DB) {
 	tx := db.MustBegin()
+	createTableUser(tx)
 	createTableGame(tx)
 	createTableMove(tx)
-	createTableUser(tx)
 	tx.Commit()
 }
 
 func createTableGame(tx *sqlx.Tx) {
 	tx.MustExec(`
 		CREATE TABLE IF NOT EXISTS game (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT,
-			x_user_id INTEGER NULL,
-			o_user_id INTEGER NULL,
-			FOREIGN KEY (x_user_id) REFERENCES user(id),
-			FOREIGN KEY (o_user_id) REFERENCES user(id)
+			id int4 GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+			name varchar(200) NOT NULL,
+			x_user_id int4,
+			o_user_id int4,
+			FOREIGN KEY (x_user_id) REFERENCES app_user(id),
+			FOREIGN KEY (o_user_id) REFERENCES app_user(id)
 		)
 	`)
 }
@@ -26,10 +26,10 @@ func createTableGame(tx *sqlx.Tx) {
 func createTableMove(tx *sqlx.Tx) {
 	tx.MustExec(`
 		CREATE TABLE IF NOT EXISTS move (
-			game_id INTEGER,
-			col INTEGER,
-			row INTEGER,
-			inx INTEGER,
+			game_id int4,
+			col int4,
+			row int4,
+			inx int4,
 			PRIMARY KEY (game_id, col, row, inx),
 			FOREIGN KEY(game_id) REFERENCES game(id)
 		)
@@ -38,8 +38,8 @@ func createTableMove(tx *sqlx.Tx) {
 
 func createTableUser(tx *sqlx.Tx) {
 	tx.MustExec(`
-		CREATE TABLE IF NOT EXISTS user (
-			id INTEGER PRIMARY KEY AUTOINCREMENT
+		CREATE TABLE IF NOT EXISTS app_user (
+			id int4 GENERATED ALWAYS AS IDENTITY PRIMARY KEY
 		)
 	`)
 }

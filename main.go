@@ -39,6 +39,7 @@ var (
 func main() {
 	err := godotenv.Load(".env")
 	e := echo.New()
+	e.Logger.SetLevel(log.INFO)
 	if err != nil {
 		e.Logger.Fatal("Could not load env file")
 	}
@@ -46,11 +47,11 @@ func main() {
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbPort := os.Getenv("POSTGRES_PORT")
-	connectionString := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s", dbUser, dbPassword, dbPort, dbName)
-	e.Logger.SetLevel(log.INFO)
+	connectionString := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", dbUser, dbPassword, dbPort, dbName)
+	e.Logger.Debug(connectionString)
 	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
-		e.Logger.Fatal("Could not connect to the database")
+		e.Logger.Fatal("Could not connect to the database. ", err)
 	}
 	repository.CreateDatabase(db)
 
