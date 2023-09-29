@@ -68,7 +68,7 @@ func main() {
 		if s.Values["userId"] == nil {
 			userId, err := repository.CreateUser(db)
 			if err != nil {
-				return c.String(http.StatusInternalServerError, "Cannot create user")
+				return c.String(http.StatusInternalServerError, fmt.Sprintf("Cannot create user: %s", err), )
 			}
 			s.Values["userId"] = userId
 		}
