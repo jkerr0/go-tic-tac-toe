@@ -5,12 +5,14 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/gommon/log"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
+
+	"github.com/antonlindstrom/pgstore"
 
 	"github.com/gorilla/websocket"
 	"github.com/jkerro/go-tic-tac-toe/handlers"
@@ -18,7 +20,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	_ "modernc.org/sqlite"
+	_ "github.com/lib/pq"
+
+	"github.com/joho/godotenv"
 )
 
 type Template struct {
@@ -34,10 +38,21 @@ var (
 )
 
 func main() {
+	err := godotenv.Load(".env")
 	e := echo.New()
-	db, err := sqlx.Connect("sqlite", "test.db")
+	e.Logger.SetLevel(log.INFO)
 	if err != nil {
-		e.Logger.Fatal("Could not connect to the database")
+		e.Logger.Fatal("Could not load env file")
+	}
+	dbName := os.Getenv("POSTGRES_DB")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	dbPort := os.Getenv("POSTGRES_PORT")
+	connectionString := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", dbUser, dbPassword, dbPort, dbName)
+	e.Logger.Debug(connectionString)
+	db, err := sqlx.Connect("postgres", connectionString)
+	if err != nil {
+		e.Logger.Fatal("Could not connect to the database. ", err)
 	}
 	repository.CreateDatabase(db)
 
@@ -54,7 +69,8 @@ func main() {
 		if s.Values["userId"] == nil {
 			userId, err := repository.CreateUser(db)
 			if err != nil {
-				return c.String(http.StatusInternalServerError, "Cannot create user")
+				c.Logger().Error("Cannot create user", err)
+				return c.String(http.StatusInternalServerError, fmt.Sprintf("Cannot create user"))
 			}
 			s.Values["userId"] = userId
 		}
@@ -107,7 +123,7 @@ func main() {
 		}
 		gameId, err := strconv.Atoi(c.Param("gameId"))
 		if err != nil {
-			c.String(http.StatusBadRequest, "Game id is required to be an integer")
+			return c.String(http.StatusBadRequest, "Game id is required to be an integer")
 		}
 
 		side := handlers.GetSession(c).Values[fmt.Sprintf("side-%d", gameId)].(string)
@@ -128,11 +144,10 @@ func main() {
 		}
 
 	})
-	sessionKey := "secret"
-	// sessionKey, defined := os.LookupEnv("SESSION_KEY")
-	// if !defined {
-	// 	e.Logger.Fatal("session key not defined")
-	// }
+	sessionKey, defined := os.LookupEnv("SESSION_KEY")
+	if !defined {
+		e.Logger.Fatal("session key not defined")
+	}
 	sessionKeyByte := []byte(sessionKey)
 
 	e.Static("/style", "/public/style")
@@ -142,11 +157,13 @@ func main() {
 	}))
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	store, err := pgstore.NewPGStore(connectionString, sessionKeyByte)
+	if err != nil {
+		e.Logger.Fatal("Could not create postgres session store", err)
+	}
 	e.Use(session.MiddlewareWithConfig(session.Config{
-		Store:   sessions.NewFilesystemStore("/session"),
+		Store:   store,
 		Skipper: middleware.DefaultSkipper,
 	}))
-	e.Use(session.Middleware(sessions.NewCookieStore(sessionKeyByte)))
-	e.Logger.SetLevel(log.INFO)
 	e.Logger.Fatal(e.Start(":8080"))
 }
