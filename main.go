@@ -10,8 +10,9 @@ import (
 
 	"github.com/labstack/gommon/log"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
+
+	"github.com/antonlindstrom/pgstore"
 
 	"github.com/gorilla/websocket"
 	"github.com/jkerro/go-tic-tac-toe/handlers"
@@ -68,7 +69,8 @@ func main() {
 		if s.Values["userId"] == nil {
 			userId, err := repository.CreateUser(db)
 			if err != nil {
-				return c.String(http.StatusInternalServerError, fmt.Sprintf("Cannot create user: %s", err), )
+				c.Logger().Error("Cannot create user", err)
+				return c.String(http.StatusInternalServerError, fmt.Sprintf("Cannot create user"))
 			}
 			s.Values["userId"] = userId
 		}
@@ -121,7 +123,7 @@ func main() {
 		}
 		gameId, err := strconv.Atoi(c.Param("gameId"))
 		if err != nil {
-			c.String(http.StatusBadRequest, "Game id is required to be an integer")
+			return c.String(http.StatusBadRequest, "Game id is required to be an integer")
 		}
 
 		side := handlers.GetSession(c).Values[fmt.Sprintf("side-%d", gameId)].(string)
@@ -155,10 +157,13 @@ func main() {
 	}))
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	store, err := pgstore.NewPGStore(connectionString, sessionKeyByte)
+	if err != nil {
+		e.Logger.Fatal("Could not create postgres session store", err)
+	}
 	e.Use(session.MiddlewareWithConfig(session.Config{
-		Store:   sessions.NewFilesystemStore("/session"),
+		Store:   store,
 		Skipper: middleware.DefaultSkipper,
 	}))
-	e.Use(session.Middleware(sessions.NewCookieStore(sessionKeyByte)))
 	e.Logger.Fatal(e.Start(":8080"))
 }
